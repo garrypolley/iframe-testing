@@ -118,9 +118,6 @@ sequenceDiagram
   * `type` - Always `GET_TOKENIZED_VALUE`
 
 
-**EXCHANGE_TOKEN**
-
-
 # How it works
 
 The parent page contains a form with an encrypted field. The encrypted field is actually an iframe that contains the child page.
