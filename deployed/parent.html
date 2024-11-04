@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Parent Form</title>
+    <style>
+        :root {
+            --inputHeight: 40px;
+        }
+        form {
+            max-width: 500px;
+            margin: 20px auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[data-field-type="secure-placeholder"], input {
+            width: 100%;
+            padding: 8px;
+            height: var(--inputHeight);
+            box-sizing: border-box;
+        }
+        @keyframes loading {
+            0% { background-color: #939191; }
+            100% { background-color: #f0f0f0; }
+        }
+        input[data-field-type="secure-placeholder"] {
+            /* show a loading animation until the iframe is ready */
+            animation: loading 1.5s ease-in-out infinite;
+            background-color: #ffffff;
+            transition: all 0.5s ease;
+        }
+        .secureIFrameContainer {
+            height: var(--inputHeight);
+            width: 100%;
+            iframe {
+                display: none;
+                visibility: hidden;
+            }
+            position: relative;  /* Add this */
+        }
+        .lock-icon {
+            position: absolute;
+            right: 8px;
+            top: 45%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            pointer-events: none;
+            z-index: 2;
+            color: black;
+        }
+        .secureIFrame {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    <script>
+        function onIframeLoad(event) {
+            event.target.contentWindow.postMessage({
+                type: 'SETUP_INPUT_FIELD',
+                fieldId: 'instrument123',
+                fieldType: 'textarea',
+                placeholder: 'Instrument Number is required',
+                required: true,
+                minLength: 5,
+                maxLength: 16,
+                style: "width: 100%; padding: 8px; box-sizing: border-box;",
+                formStyle: "margin: 0; padding: 0;",
+                invalidStyle: "border: 2px solid red;",
+                validStyle: "border: 2px solid green;",
+            }, 'http://iframe-testing.garrypolley.com');
+        }
+    </script>
+</head>
+<body>
+    <form id="mainForm">
+        <div class="form-group">
+            <label for="name">Full Name:</label>
+            <input type="text" id="name" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" required>
+        </div>
+
+        <!-- Secure Payment Fields (handled by iframe) -->
+        <div class="form-group">
+            <label>Instrument</label>
+            <div class="secureIFrameContainer">
+                <svg class="lock-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                </svg>
+                <iframe onload="onIframeLoad(event)" class="secureIFrame" id="secureFrame" src="http://iframe-testing.garrypolley.com/deployed/child.html?fieldId=instrument123" height="100%" width="100%"
+                ></iframe>
+                <input type="text" id="instrument123" data-field-type="secure-placeholder" placeholder="Loading Secure Field..." readonly disabled />
+            </div>
+        </div>
+
+
+        <button type="submit">Submit Payment</button>
+    </form>
+
+    <script>
+        window.addEventListener('message', function(event) {
+            // Verify the origin of the message
+            if (event.origin !== 'http://iframe-testing.garrypolley.com') {
+                // ignore messages from other origins
+                return;
+            }
+
+            // Handle the secure payment data
+            if (event.data.type === 'TOKENIZED_VALUE') {
+                console.log('Received tokenized value');
+                console.log(event.data);
+                // In a real application, you would send this token to your server
+                // The actual card data never touches your main page
+            }
+
+            if (event.data.type === 'INPUT_READY') {
+                document.getElementById('secureFrame').style.display = 'block';
+                document.getElementById('secureFrame').style.visibility = 'visible';
+                document.getElementById('instrument123').style.display = 'none';
+                document.getElementById('instrument123').style.visibility = 'hidden';
+            }
+
+            if (event.data.type === 'INPUT_ERROR') {
+                console.log('Input error:', event.data);
+            }
+
+            if (event.data.type === 'INPUT_CHANGED') {
+                console.log('Input changed:', event.data);
+            }
+        });
+
+        document.getElementById('mainForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Request payment data from iframe
+            const iframe = document.getElementById('secureFrame');
+            iframe.contentWindow.postMessage({
+                type: 'GET_TOKENIZED_VALUE'
+            }, 'http://iframe-testing.garrypolley.com');
+        });
+    </script>
+</body>
+</html>
