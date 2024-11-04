@@ -65,7 +65,7 @@
     <script>
         function onIframeLoad(event) {
             event.target.contentWindow.postMessage({
-                type: 'INPUT_VALIDATION',
+                type: 'SETUP_INPUT_FIELD',
                 fieldId: 'instrument123',
                 fieldType: 'textarea',
                 placeholder: 'Instrument Number is required',

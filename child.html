@@ -48,7 +48,7 @@
 
             const field = document.getElementById(fieldId);
 
-            if (event.data.type === 'INPUT_VALIDATION') {
+            if (event.data.type === 'SETUP_INPUT_FIELD') {
                 if (event.data.maxLength) {
                     field.maxLength = event.data.maxLength;
                 }
