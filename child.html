@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Encrypted Field</title>
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <form id="mainForm" action="">
+        <input type="text" id="" placeholder="" />
+    </form>
+
+    <script>
+        async function fetchTokenizedValue(token) {
+            // TODO: implement this
+            return token;
+        }
+
+        async function fetchToken(value) {
+            // TODO: implement this
+            return `MOCK_TOKEN_${Date.now()}_${value}`;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const fieldId = urlParams.get('fieldId');
+        document.querySelector('input[type="text"]').id = fieldId;
+
+        const form = document.getElementById('mainForm');
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            console.log('form submitted');
+        });
+
+        window.addEventListener('message', async function(event) {
+            // Verify the origin of the message
+            if (event.origin !== 'http://parentframe.com:8000') {
+                // ignore messages from other origins
+                return;
+            }
+
+            const field = document.getElementById(fieldId);
+
+            if (event.data.type === 'INPUT_VALIDATION') {
+                if (event.data.maxLength) {
+                    field.maxLength = event.data.maxLength;
+                }
+
+                if (event.data.token) {
+                    const tokenizedValue = await fetchTokenizedValue(event.data.token);
+                    field.value = tokenizedValue;
+                }
+
+                if (event.data.placeholder) {
+                    field.placeholder = event.data.placeholder;
+                }
+
+                if (event.data.required) {
+                    field.required = event.data.required;
+                }
+
+                if (event.data.pattern) {
+                    field.pattern = event.data.pattern;
+                }
+
+                if (event.data.minLength) {
+                    field.minLength = event.data.minLength;
+                }
+
+                if (event.data.fieldType) {
+                    field.type = event.data.fieldType;
+                }
+
+                if (event.data.style) {
+                    field.style = event.data.style;
+                }
+
+                if (event.data.formStyle) {
+                    form.style = event.data.formStyle;
+                }
+
+                if (event.data.invalidStyle || event.data.validStyle) {
+                    // Create or get a style element for our dynamic styles
+                    let styleEl = document.getElementById('dynamic-styles');
+                    if (!styleEl) {
+                        styleEl = document.createElement('style');
+                        styleEl.id = 'dynamic-styles';
+                        document.head.appendChild(styleEl);
+                    }
+
+                    // Create the CSS rule for :invalid and :valid
+                    const cssRule = event.data.invalidStyle ? `#${fieldId}:invalid { ${event.data.invalidStyle} }` : '';
+                    const cssRule2 = event.data.validStyle ? `#${fieldId}:valid { ${event.data.validStyle} }` : '';
+                    styleEl.textContent = `${cssRule}\n${cssRule2}`;
+                }
+
+                // First check if the field already has an input event listener
+                if (!field.oninput) {
+                    field.addEventListener('input', () => {
+                        event.source.postMessage({
+                            type: 'INPUT_CHANGED',
+                        }, event.origin);
+                    });
+                }
+
+                // Let the parent know that the field is ready
+                event.source.postMessage({
+                    type: 'INPUT_READY'
+                }, event.origin);
+            }
+
+            if (event.data.type === 'GET_TOKENIZED_VALUE') {
+                // Collect the sensitive data
+                const cardNumber = field.value;
+
+                // Validate the field
+                if (!field.checkValidity()) {
+                    event.source.postMessage({
+                        type: 'INPUT_ERROR',
+                        error: field.validationMessage,
+                        info: {
+                            // https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation
+                            // Add validity information to the message passed back to parent
+                            // this allows the parent to do custom logic on the error for their
+                            // own display purposes.
+                            patternMismatch: field.validity.patternMismatch,
+                            tooLong: field.validity.tooLong,
+                            tooShort: field.validity.tooShort,
+                            valueMissing: field.validity.valueMissing,
+                            rangeOverflow: field.validity.rangeOverflow,
+                            rangeUnderflow: field.validity.rangeUnderflow,
+                            typeMismatch: field.validity.typeMismatch,
+                            badInput: field.validity.badInput,
+                            customError: field.validity.customError,
+                            valueMissing: field.validity.valueMissing,
+                        }
+                    }, event.origin);
+                    field.reportValidity();
+                    return;
+                }
+
+                // In a real application, you would tokenize this data
+                // before sending it to the parent
+                const token = await fetchToken(field.value);
+                const tokenizedData = {
+                    type: 'TOKENIZED_VALUE',
+                    token,
+                };
+
+                // Send the tokenized data back to parent
+                event.source.postMessage(tokenizedData, event.origin);
+            }
+        });
+    </script>
+</body>
+</html>
