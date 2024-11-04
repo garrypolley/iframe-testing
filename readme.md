@@ -2,6 +2,10 @@
 
 This is a demo of an encrypted field that can be used to securely store and transmit sensitive information.
 
+See demo on live page at:
+
+[http://iframe-testing.garrypolley.com/deployed/parent.html](/deployed/parent.html)
+
 
 # Proposed API
 
