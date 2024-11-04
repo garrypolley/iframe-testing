@@ -32,8 +32,14 @@ If a call to `GET_TOKENIZED_VALUE` is successful, the child page will send a `TO
 
 ```mermaid
 sequenceDiagram
+    participant User
     participant Parent
     participant Child
+    User->>Parent: Loads form
+    Parent->>Child: SETUP_INPUT_FIELD
+    Child->>Parent: INPUT_READY
+    Parent->>Parent: finish setting up the form
+    User->>Parent: fill out the form and submit
     Parent->>Child: GET_TOKENIZED_VALUE
     Child->>Parent: TOKENIZED_VALUE
 ```
@@ -42,10 +48,16 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
+    participant User
     participant Parent
     participant Child
+    User->>Parent: Loads form
+    Parent->>Child: SETUP_INPUT_FIELD
+    Child->>Parent: INPUT_READY
+    User->>Parent: fill out the form and submit
     Parent->>Child: GET_TOKENIZED_VALUE
     Child->>Parent: INPUT_ERROR
+    Parent->>User: display error message
 ```
 
 * `TOKENIZED_VALUE` - The child page has tokenized the value of the field
