@@ -4,7 +4,7 @@ This is a demo of an encrypted field that can be used to securely store and tran
 
 See demo on live page at:
 
-[http://iframe-testing.garrypolley.com/deployed/parent.html](/deployed/parent.html)
+[http://iframe-testing.garrypolley.com/deployed/parent.html](deployed/parent.html)
 
 
 # Proposed API
@@ -34,7 +34,7 @@ If a call to `GET_TOKENIZED_VALUE` is successful, the child page will send a `TO
 
 **Successful Flow:**
 
-<pre class="mermaid">
+```mermaid
 sequenceDiagram
     participant User
     participant Parent
@@ -46,11 +46,11 @@ sequenceDiagram
     User->>Parent: fill out the form and submit
     Parent->>Child: GET_TOKENIZED_VALUE
     Child->>Parent: TOKENIZED_VALUE
-</pre>
+```
 
 **Error Flow:**
 
-<pre class="mermaid">
+```mermaid
 sequenceDiagram
     participant User
     participant Parent
@@ -62,7 +62,7 @@ sequenceDiagram
     Parent->>Child: GET_TOKENIZED_VALUE
     Child->>Parent: INPUT_ERROR
     Parent->>User: display error message
-</pre>
+```
 
 * `TOKENIZED_VALUE` - The child page has tokenized the value of the field
   * `type` - Always `TOKENIZED_VALUE`
@@ -93,14 +93,14 @@ Both messages have the `type` property, which is the type of message.
 
 **Flow for setting up the input field:**
 
-<pre class="mermaid">
+```mermaid
 sequenceDiagram
     participant Parent
     participant Child
     Parent->>Child: SETUP_INPUT_FIELD
     Child->>Parent: INPUT_READY
     Parent->>Parent: finish setting up the form
-</pre>
+```
 
 * `SETUP_INPUT_FIELD` - The parent page is telling the child page the validation rules for the field
   * `type` - Always `SETUP_INPUT_FIELD`
